@@ -1,0 +1,11 @@
+# Python Files
+.venv/
+
+# Meson Output
+build/
+
+# OS Files
+.DS_Store
+
+# IDE Files (Add yours later)
+.vscode/
