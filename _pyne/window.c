@@ -1,5 +1,4 @@
 #include "window.h"
-#include "SDL_render.h"
 #include "SDL_video.h"
 #include <stdio.h>
 
@@ -56,11 +55,28 @@ static i32 _pyne_window_setsize(_pyne_window *self, PyObject *args,
   return 0;
 }
 
+static PyObject *_pyne_window_gettitle(_pyne_window *self, void *_closure) {
+  return PyUnicode_FromString(SDL_GetWindowTitle(self->win_ptr));
+}
+
+static i32 _pyne_window_settitle(_pyne_window *self, PyObject *value,
+                                 void *_closure) {
+  char *new_title;
+  if (!PyArg_Parse(value, "s", &new_title)) {
+    return -1;
+  }
+  SDL_SetWindowTitle(self->win_ptr, new_title);
+
+  return 0;
+}
+
 // Method Define
 static PyMethodDef _pyne_window_meth[] = {{NULL, NULL, 0, NULL}};
 static PyGetSetDef _pyne_window_getset[] = {
     {"size", (getter)_pyne_window_getsize, (setter)_pyne_window_setsize,
      "size of the window", NULL},
+    {"title", (getter)_pyne_window_gettitle, (setter)_pyne_window_settitle,
+     "title of the window", NULL},
     {NULL, NULL, NULL, NULL, NULL}};
 
 // Type Define
