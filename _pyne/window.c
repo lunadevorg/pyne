@@ -1,8 +1,7 @@
 #include "window.h"
-#include "SDL_video.h"
 #include <stdio.h>
 
-// Methods
+// Init/Delete
 static i32 _pyne_window_init(_pyne_window *win, PyObject *args,
                              PyObject *kwargs) {
   char *kwords[] = {"title", "width", "height", "flags", NULL};
@@ -34,6 +33,27 @@ static void _pyne_window_del(_pyne_window *self) {
   SDL_DestroyRenderer(self->render_ptr);
   SDL_DestroyWindow(self->win_ptr);
   Py_TYPE(self)->tp_free(Py_TYPE(self));
+}
+
+// Methods
+static PyObject *_pyne_window_update(_pyne_window *self, PyObject *_args,
+                                     PyObject *_kwargs) {
+  SDL_RenderPresent(self->render_ptr);
+  Py_RETURN_NONE;
+}
+
+static PyObject *_pyne_window_fill(_pyne_window *self, PyObject *args,
+                                   PyObject *kwargs) {
+  u8 r, g, b, a = 255;
+
+  if (!PyArg_ParseTuple(args, "BBB|B", &r, &g, &b, &a)) {
+    PyErr_SetString(_pyne_error, "couldn't parse args");
+    return NULL;
+  }
+
+  SDL_SetRenderDrawColor(self->render_ptr, r, g, b, a);
+  SDL_RenderClear(self->render_ptr);
+  Py_RETURN_NONE;
 }
 
 // Get/Setters
@@ -71,7 +91,12 @@ static i32 _pyne_window_settitle(_pyne_window *self, PyObject *value,
 }
 
 // Method Define
-static PyMethodDef _pyne_window_meth[] = {{NULL, NULL, 0, NULL}};
+static PyMethodDef _pyne_window_meth[] = {
+    {"update", (PyCFunction)_pyne_window_update, METH_NOARGS,
+     "update the window's pixels"},
+    {"fill", (PyCFunction)_pyne_window_fill, METH_VARARGS,
+     "fill the screen with color"},
+    {NULL, NULL, 0, NULL}};
 static PyGetSetDef _pyne_window_getset[] = {
     {"size", (getter)_pyne_window_getsize, (setter)_pyne_window_setsize,
      "size of the window", NULL},
