@@ -1,11 +1,15 @@
 # Python Files
 .venv/
 
-# Meson Output
+# Compiler Output
 build/
+.cache/
+__pycache__/
 
 # OS Files
 .DS_Store
+compile_flags.txt
+# compile_flags.txt is required for the include path in Zed
 
 # IDE Files (Add yours later)
 .vscode/
