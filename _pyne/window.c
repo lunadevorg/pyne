@@ -37,8 +37,31 @@ static void _pyne_window_del(_pyne_window *self) {
   Py_TYPE(self)->tp_free(Py_TYPE(self));
 }
 
+// Get/Setters
+static PyObject *_pyne_window_getsize(_pyne_window *self, void *_closure) {
+  i32 x, y;
+  SDL_GetWindowSize(self->win_ptr, &x, &y);
+  return Py_BuildValue("ii", x, y);
+}
+
+static i32 _pyne_window_setsize(_pyne_window *self, PyObject *args,
+                                void *_closure) {
+  i32 x, y;
+
+  if (!PyArg_ParseTuple(args, "ii", &x, &y)) {
+    return -1;
+  }
+
+  SDL_SetWindowSize(self->win_ptr, x, y);
+  return 0;
+}
+
 // Method Define
 static PyMethodDef _pyne_window_meth[] = {{NULL, NULL, 0, NULL}};
+static PyGetSetDef _pyne_window_getset[] = {
+    {"size", (getter)_pyne_window_getsize, (setter)_pyne_window_setsize,
+     "size of the window", NULL},
+    {NULL, NULL, NULL, NULL, NULL}};
 
 // Type Define
 PyTypeObject _pyne_window_type = {
@@ -50,7 +73,8 @@ PyTypeObject _pyne_window_type = {
     .tp_methods = _pyne_window_meth,
     .tp_init = (initproc)_pyne_window_init,
     .tp_itemsize = 0,
-    .tp_del = (destructor)_pyne_window_del};
+    .tp_del = (destructor)_pyne_window_del,
+    .tp_getset = _pyne_window_getset};
 
 i32 _pyne_prepare_window(PyObject *mod) {
   if (PyType_Ready(&_pyne_window_type))
