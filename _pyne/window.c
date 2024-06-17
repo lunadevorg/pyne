@@ -1,5 +1,4 @@
 #include "window.h"
-#include <stdio.h>
 
 // Init/Delete
 static i32 _pyne_window_init(_pyne_window *win, PyObject *args,
@@ -26,10 +25,16 @@ static i32 _pyne_window_init(_pyne_window *win, PyObject *args,
     return -1;
   }
 
+  _pyne_default_window = win;
+
   return 0;
 }
 
 static void _pyne_window_del(_pyne_window *self) {
+  if (_pyne_default_window == self) {
+    _pyne_default_window = NULL;
+  }
+
   SDL_DestroyRenderer(self->render_ptr);
   SDL_DestroyWindow(self->win_ptr);
   Py_TYPE(self)->tp_free(Py_TYPE(self));
@@ -42,8 +47,7 @@ static PyObject *_pyne_window_update(_pyne_window *self, PyObject *_args,
   Py_RETURN_NONE;
 }
 
-static PyObject *_pyne_window_fill(_pyne_window *self, PyObject *args,
-                                   PyObject *kwargs) {
+static PyObject *_pyne_window_fill(_pyne_window *self, PyObject *args) {
   u8 r, g, b, a = 255;
 
   if (!PyArg_ParseTuple(args, "BBB|B", &r, &g, &b, &a)) {
@@ -53,6 +57,29 @@ static PyObject *_pyne_window_fill(_pyne_window *self, PyObject *args,
 
   SDL_SetRenderDrawColor(self->render_ptr, r, g, b, a);
   SDL_RenderClear(self->render_ptr);
+  Py_RETURN_NONE;
+}
+
+static PyObject *_pyne_window_render(_pyne_window *self, PyObject *args) {
+  int x = 0, y = 0, w, h;
+  PyObject *_image;
+
+  if (!PyArg_ParseTuple(args, "O|(ii)", &_image, &x, &y)) {
+    PyErr_SetString(_pyne_error, "couldn't parse args");
+    return NULL;
+  }
+
+  if (!PyObject_IsInstance(_image, (PyObject *)&_pyne_image_type)) {
+    PyErr_SetString(_pyne_error, "given object is not an Image");
+    return NULL;
+  }
+
+  _pyne_image *image = _image;
+  SDL_QueryTexture(image->tex_ptr, NULL, NULL, &w, &h);
+  SDL_Rect rect = {.x = x, .y = y, .w = w, .h = h};
+
+  SDL_RenderCopy(self->render_ptr, image->tex_ptr, NULL, &rect);
+
   Py_RETURN_NONE;
 }
 
@@ -96,6 +123,8 @@ static PyMethodDef _pyne_window_meth[] = {
      "update the window's pixels"},
     {"fill", (PyCFunction)_pyne_window_fill, METH_VARARGS,
      "fill the screen with color"},
+    {"render", (PyCFunction)_pyne_window_render, METH_VARARGS,
+     "renders an image to the screen"},
     {NULL, NULL, 0, NULL}};
 static PyGetSetDef _pyne_window_getset[] = {
     {"size", (getter)_pyne_window_getsize, (setter)_pyne_window_setsize,

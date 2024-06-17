@@ -23,5 +23,6 @@ typedef int64_t i64;
 typedef void *opaq;
 
 extern PyObject *_pyne_error;
+extern PyObject *_pyne_default_window;
 
 #endif

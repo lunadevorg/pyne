@@ -1,6 +1,5 @@
 # Python Files
 .venv/
-test.py
 
 # Compiler Output
 build/
@@ -14,3 +13,7 @@ compile_flags.txt
 
 # IDE Files (Add yours later)
 .vscode/
+
+# Test Files
+test.*
+SILLY.jpeg

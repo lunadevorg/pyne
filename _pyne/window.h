@@ -2,6 +2,7 @@
 #define __WINDOW_H__
 
 #include "_pyne.h"
+#include "image.h"
 
 typedef struct _pyne_window {
   PyObject_HEAD;
